@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wr.mapper.CategroyMapper">
+	<insert id="addCategory" parameterType="com.wr.bean.Categroy">
+		INSERT INTO
+		lei(cname,cdes) VALUE(#{cname},#{cdes})
+	</insert>
+	<delete id="deleteCategory">
+		DELETE FROM lei WHERE id = #{id}
+	</delete>
+	<update id="updateCategory">
+		UPDATE lei SET cname =#{cname},cdes=#{cdes} WHERE id
+		= #{id}
+	</update>
+	<select id="findOneCategory" resultType="com.wr.bean.Categroy">
+		SELECT * FROM lei WHERE
+		id = #{id}
+	</select>
+	<select id="findAllCategory" parameterType="com.wr.bean.Categroy"
+		resultType="com.wr.bean.Categroy">
+		SELECT * FROM lei
+		<where>
+			1=1
+			<if test="cname!=null and cname!='' ">
+				and cname=#{cname}
+			</if>
+		</where>
+	</select>
+	<select id="getCategory" resultType="com.wr.bean.Categroy">
+		SELECT * FROM lei WHERE
+		cname LIKE "%${string}%";
+	</select>
+	<resultMap type="com.wr.bean.Categroy" id="category_book">
+		<id column="categoryId" property="id" />
+		<result column="cname" property="cname" />
+		<result column="cdes" property="cdes" />
+		<collection ofType="com.wr.bean.Book" property="books">
+			<id column="bookId" property="id" />
+			<result column="bname" property="bname" />
+			<result column="pic" property="pic" />
+			<result column="price" property="price" />
+			<result column="des" property="des" />
+			<result column="sellpoint" property="sellPoint" />
+		</collection>
+	</resultMap>
+	<select id="find" resultMap="category_book">
+		SELECT
+		c.id
+		categoryId,
+		c.cname,
+		c.cdes,
+		b.id bookId,
+		b.bname,
+		b.pic,
+		b.price,
+		b.des,
+		b.sellpoint
+		FROM
+		lei c
+		INNER
+		JOIN books b ON c.id =
+		b.cid
+		WHERE
+		c.id = #{id}
+	</select>
+	<resultMap type="com.wr.bean.Book" id="book_category">
+		<id column="bookId" property="id" />
+		<result column="bname" property="bname" />
+		<result column="pic" property="pic" />
+		<result column="price" property="price" />
+		<result column="des" property="des" />
+		<result column="sellpoint" property="sellPoint" />
+		<association javaType="com.wr.bean.Categroy" property="ca">
+			<id column="categoryId" property="id" />
+			<result column="cname" property="cname" />
+			<result column="cdes" property="cdes" />
+		</association>
+	</resultMap>
+	<select id="findC" resultMap="book_category">
+		SELECT
+		c.id
+		categoryId,
+		c.cname,
+		c.cdes,
+		b.id bookId,
+		b.bname,
+		b.pic,
+		b.price,
+		b.des,
+		b.sellpoint
+		FROM
+		lei c
+		INNER
+		JOIN books b ON c.id =
+		b.cid
+		WHERE
+		b.id = #{id}
+	</select>
+</mapper>

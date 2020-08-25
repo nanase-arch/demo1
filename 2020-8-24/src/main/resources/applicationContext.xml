@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:context="http://www.springframework.org/schema/context" 
+	xmlns:p="http://www.springframework.org/schema/p"
+	xmlns:aop="http://www.springframework.org/schema/aop" 
+	xmlns:tx="http://www.springframework.org/schema/tx"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans 
+	http://www.springframework.org/schema/beans/spring-beans-4.0.xsd
+	http://www.springframework.org/schema/context 
+	http://www.springframework.org/schema/context/spring-context-4.0.xsd
+	http://www.springframework.org/schema/aop 
+	http://www.springframework.org/schema/aop/spring-aop-4.0.xsd 
+	http://www.springframework.org/schema/tx 
+	http://www.springframework.org/schema/tx/spring-tx-4.0.xsd
+	http://www.springframework.org/schema/util 
+	http://www.springframework.org/schema/util/spring-util-4.0.xsd">
+	<!-- 1.开启注解扫描 -->
+	<context:component-scan base-package="com.wr" />
+
+	<!-- 2.数据库配置文件 -->
+	<context:property-placeholder location="classpath:db.properties" />
+	<!-- 3.配置数据库连接池 -->
+	<bean id="dataSource"
+		class="org.springframework.jdbc.datasource.DriverManagerDataSource">
+		<property name="driverClassName" value="${jdbc.driver}" />
+		<property name="url" value="${jdbc.url}" />
+		<property name="username" value="${jdbc.username}" />
+		<property name="password" value="${jdbc.password}" />
+	</bean>
+
+	<!-- 4.配置事务管理器 -->
+	<bean id="transactionManager"
+		class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
+		<!-- 你要管理哪个数据库 你要把数据库传进来 告诉我 我才能够管理他 -->
+		<property name="dataSource" ref="dataSource" />
+	</bean>
+	<!-- 5.配置事务管理器的规则 -->
+	<tx:advice id="transferAdvice" transaction-manager="transactionManager">
+		<tx:attributes>
+			<!-- REQUIRED:不管你有几个sql 几个事务 几个方法 都公用一个 SUPPORTS:有多少 算多少 -->
+			<tx:method name="add*" isolation="DEFAULT" propagation="REQUIRED" />
+			<tx:method name="save*" isolation="DEFAULT" propagation="REQUIRED" />
+			<tx:method name="delete*" isolation="DEFAULT" propagation="REQUIRED" />
+			<tx:method name="update*" isolation="DEFAULT" propagation="REQUIRED" />
+			<tx:method name="find*" read-only="true" isolation="DEFAULT"
+				propagation="SUPPORTS" />
+			<tx:method name="get*" read-only="true" isolation="DEFAULT"
+				propagation="SUPPORTS" />
+		</tx:attributes>
+	</tx:advice>
+
+
+	<aop:config>
+		<aop:advisor advice-ref="transferAdvice"
+			pointcut="execution(* *..*.*Service*.*(..))" />
+	</aop:config>
+
+	<!-- spring配置完毕 spring整合mybatis在下面 mybatis一定是一个对象 spring ioc控制反转 bean标签来创建mybatis对象 -->
+	<!-- 
+		mybatis对象
+			1.加载数据库连接池	<property name="dataSource" ref="dataSource"/>
+			2.加载配置文件	自动的从spring容器中 找映射文件加载到
+						核心配置文件里面去
+	 -->
+	<bean id="sqlSessionFactory" class="org.mybatis.spring.SqlSessionFactoryBean">
+		<!-- 数据库连接池
+			因为我们需要mybatis操作数据库 来代替我们写sql
+			所以我们要把数据库连接池作为参数传递进来 给mybatis使用
+		 -->
+		<property name="dataSource" ref="dataSource"/>
+		<!-- 
+			加载mybatis的全局配置文件的路径
+			classpath:
+			
+		 -->
+		<property name="configLocation" value="classpath:SqlMapConfig.xml" />
+	</bean>
+
+	<!-- 
+		扫描映射文件  吧映射文件加载到核心配置文件里面去
+	 -->
+	 <!-- 配置Mapper扫描器 -->
+	<bean class="org.mybatis.spring.mapper.MapperScannerConfigurer">
+		<!-- 
+			扫描com.clive.mapper下面的mybatis映射文件+对象
+			扫描到spring容器中
+		 -->
+		<property name="basePackage" value="com.wr.mapper" />
+	</bean>
+
+</beans>
+
